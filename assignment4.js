@@ -38,7 +38,7 @@ export class Assignment4 extends Scene {
             grass : new defs.Grid_Patch( 600, 600, row_operation, column_operation ),
             sheet2: new defs.Grid_Patch( 10, 10, row_operation_2, column_operation_2 ),
             sky: new defs.Grid_Patch( 600, 600, row_operation_3, column_operation_3 ),
-            upright: new defs.Cylindrical_Tube(1, 30, [[0,2],[0,1]])
+            upright: new defs.Cylindrical_Tube(1000, 30, [[0,2],[0,1]])
         }
         console.log(this.shapes.box_1.arrays.texture_coord)
 
@@ -93,7 +93,24 @@ export class Assignment4 extends Scene {
         this.shapes.grass.draw( context, program_state, Mat4.translation( 0,0,0 ).times(Mat4.rotation( Math.PI,   0,0,1)), this.materials.grass );
         this.shapes.sky.draw( context, program_state, Mat4.translation(  0,0,0 ).times(Mat4.rotation( Math.PI,   0,1,0 )), this.materials.sky );
         //this.shapes.axis.draw(context, program_state, model_transform, this.materials.phong.override({color: hex_color("#ffff00")}));
-        this.shapes.upright.draw(context, program_state, Mat4.translation(0, 1.5, -10).times(Mat4.rotation(Math.PI/2, 1, 0, 0)).times(Mat4.scale(0.25, 0.25, 3)), this.materials.goal)
+
+        // Draw Goal
+        let model_transform_base = model_transform.times(Mat4.translation(0, 1.5, -10))
+            .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
+            .times(Mat4.scale(0.25, 0.25, 10));
+        this.shapes.upright.draw(context, program_state, model_transform_base, this.materials.goal);
+        let model_transform_horizontal= model_transform.times(Mat4.translation(0, 6.5, -10))
+            .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
+            .times(Mat4.scale(0.25, 0.25, -15));
+        this.shapes.upright.draw(context, program_state, model_transform_horizontal, this.materials.goal);
+        let model_transform_left = model_transform.times(Mat4.translation(-7.5, 11.25, -10))
+            .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
+            .times(Mat4.scale(0.25, 0.25, 10));
+        this.shapes.upright.draw(context, program_state, model_transform_left, this.materials.goal);
+        let model_transform_right = model_transform.times(Mat4.translation(7.5, 11.25, -10))
+            .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
+            .times(Mat4.scale(0.25, 0.25, 10));
+        this.shapes.upright.draw(context, program_state, model_transform_right, this.materials.goal);
     }
 }
 

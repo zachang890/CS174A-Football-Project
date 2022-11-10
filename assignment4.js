@@ -89,8 +89,9 @@ export class Assignment4 extends Scene {
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, 1, 100);
 
-        const light_position = vec4(-80, 50, -10, 1);
-        program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 100000)];
+        const light_position1 = vec4(-80, 50, -10, 1);
+        const light_position2 = vec4(20, 50, -10, 1);
+        program_state.lights = [new Light(light_position1, color(1, 1, 1, 1), 100000), new Light(light_position2, color(1, 1, 1, 1), 100000)];
 
         let t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
         let model_transform = Mat4.identity();
@@ -101,7 +102,6 @@ export class Assignment4 extends Scene {
         //const r = Mat4.rotation( Math.PI,   0,1,0 ).t imes( this.r );
         this.shapes.grass.draw( context, program_state, Mat4.translation( 0,0,0 ).times(Mat4.rotation( Math.PI,   0,0,1)), this.materials.grass );
         this.shapes.sky.draw( context, program_state, Mat4.translation(  0,0,0 ).times(Mat4.rotation( Math.PI,   0,1,0 )), this.materials.sky );
-
         // Draw lines on the field
         this.shapes.outer_border_side.draw(context, program_state, Mat4.translation(-70, 0.01, 10), this.materials.field_lines );
         this.shapes.outer_border_side.draw(context, program_state, Mat4.translation(25, 0.01, 10), this.materials.field_lines );

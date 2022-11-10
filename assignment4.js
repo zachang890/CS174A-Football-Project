@@ -40,7 +40,8 @@ export class Assignment4 extends Scene {
             yard_lines: new defs.Grid_Patch(485, 5, row_operation, column_operation),
             sheet2: new defs.Grid_Patch( 10, 10, row_operation_2, column_operation_2 ),
             sky: new defs.Grid_Patch( 600, 600, row_operation_3, column_operation_3 ),
-            upright: new defs.Cylindrical_Tube(1000, 30, [[0,2],[0,1]])
+            upright: new defs.Cylindrical_Tube(1000, 30, [[0,2],[0,1]]),
+            football: new defs.Subdivision_Sphere(4),
         }
         console.log(this.shapes.box_1.arrays.texture_coord)
 
@@ -65,7 +66,10 @@ export class Assignment4 extends Scene {
             }),
             goal: new Material(new Textured_Phong(), {
                 color: hex_color("#ffff00")
-            })
+            }),
+            football: new Material(new Textured_Phong(), {
+                color: hex_color("#6B3E2E")
+            }),
         }
 
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
@@ -126,6 +130,11 @@ export class Assignment4 extends Scene {
             .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
             .times(Mat4.scale(0.25, 0.25, 10));
         this.shapes.upright.draw(context, program_state, model_transform_right, this.materials.goal);
+
+        // Initialize football
+        let model_transform_football = model_transform.times(Mat4.translation(0, 1.5, 10))
+            .times(Mat4.scale(0.75, 1.5, 0.75));
+        this.shapes.football.draw(context, program_state, model_transform_football, this.materials.football);
     }
 }
 

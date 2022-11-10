@@ -83,7 +83,7 @@ export class Assignment4 extends Scene {
         if (!context.scratchpad.controls) {
             this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             // Define the global camera and projection matrices, which are stored in program_state.
-            program_state.set_camera(Mat4.translation(0, -4, -8));
+            program_state.set_camera(Mat4.translation(40, -4, -25));
         }
 
         program_state.projection_transform = Mat4.perspective(
@@ -132,7 +132,7 @@ export class Assignment4 extends Scene {
         this.shapes.upright.draw(context, program_state, model_transform_right, this.materials.goal);
 
         // Initialize football
-        let model_transform_football = model_transform.times(Mat4.translation(0, 1.5, 10))
+        let model_transform_football = model_transform.times(Mat4.translation(-40, 1.5, 10))
             .times(Mat4.scale(0.75, 1.5, 0.75));
         this.shapes.football.draw(context, program_state, model_transform_football, this.materials.football);
     }

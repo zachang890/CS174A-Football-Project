@@ -199,9 +199,11 @@ export class Final_proj extends Scene {
             model_transform_football = model_transform
                 .times(Mat4.translation(
                     this.football_x + this.power*Math.cos(vertical_radians)*Math.sin(horizontal_radians)*rel_t,
-                    -4.8*rel_t*rel_t + this.power*Math.sin(vertical_radians)*rel_t + 1.5,
+                    -9*rel_t*rel_t + this.power*Math.sin(vertical_radians)*rel_t + 1.5,
                     this.football_z + -1*this.power*Math.cos(vertical_radians)*Math.cos(horizontal_radians)*rel_t))
                 .times(Mat4.scale(0.75, 1.5, 0.75));
+
+            program_state.set_camera(Mat4.inverse(model_transform_football.times(Mat4.translation(0, 0, 20)).times(Mat4.scale(4.0/3.0, 2.0/3.0, 4.0/3.0))));
         }
 
         this.shapes.football.draw(context, program_state, model_transform_football, this.materials.football);

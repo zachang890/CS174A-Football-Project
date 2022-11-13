@@ -105,10 +105,9 @@ export class Final_proj extends Scene {
         let t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
         let model_transform = Mat4.identity();
 
+        // Draw the environment
         this.shapes.grass.draw( context, program_state, Mat4.translation( 0,0,0 ).times(Mat4.rotation( Math.PI,   0,0,1)), this.materials.grass );
         this.shapes.sky.draw( context, program_state, Mat4.translation(  0,0,0 ).times(Mat4.rotation( Math.PI,   0,1,0 )), this.materials.sky );
-
-        // Draw lines on the field
         this.shapes.outer_border_side.draw(context, program_state, Mat4.translation(-70, 0.01, 10), this.materials.field_lines );
         this.shapes.outer_border_side.draw(context, program_state, Mat4.translation(25, 0.01, 10), this.materials.field_lines );
 
@@ -134,12 +133,15 @@ export class Final_proj extends Scene {
             .times(Mat4.scale(0.25, 0.25, 10));
         this.shapes.upright.draw(context, program_state, model_transform_right, this.materials.goal);
 
-        let time = program_state.animation_time / 1000;
-
         // Initialize football at random position on the field only if the level is not finished
         if (this.level_finished) {
             this.football_x = Math.floor(Math.random() * 81 - 80);
             this.football_z = Math.floor(Math.random() * 51 + 10);
+
+            // Position the camera right behind the football
+            program_state.set_camera(Mat4.translation(-1*this.football_x, -4, -1*this.football_z-12));
+
+            // Mark the level as unfinished
             this.level_finished = false;
         }
         let model_transform_football = model_transform.times(Mat4.translation(this.football_x, 1.5, this.football_z))

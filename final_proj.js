@@ -77,17 +77,52 @@ export class Final_proj extends Scene {
 
         this.level_number = 1;
 
+        this.in_flight = false;
+        this.start_flight_time = 0;
+        this.start_flight_time_set = false;
+
+        this.power = 50;
+        this.horizontal_angle = 0;
+        this.vertical_angle = 45;
+
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
     }
 
     make_control_panel() {
-        this.key_triggered_button("Angle Left", ["a"], () => {});
-        this.key_triggered_button("Angle Right", ["d"], () => {});
-        this.key_triggered_button("Angle Up", ["w"], () => {});
-        this.key_triggered_button("Angle Down", ["s"], () => {});
-        this.key_triggered_button("Increase Power", ["p"], () => {});
-        this.key_triggered_button("Decrease Power", ["o"], () => {});
-        this.key_triggered_button("Kick", ["f"], () => {});
+        // Control horizontal angle of the kick (only range -90 to 90)
+        const horizontal_angle_controls = this.control_panel.appendChild(document.createElement("span"));
+        horizontal_angle_controls.style.margin = "30px";
+        this.key_triggered_button("Angle Left", ["a"], () =>
+        {if (this.horizontal_angle > -90) this.horizontal_angle -= 1}, undefined, undefined, undefined, horizontal_angle_controls);
+        this.live_string(box => {
+            box.textContent = "Horizontal Angle: " + this.horizontal_angle
+        }, horizontal_angle_controls);
+        this.key_triggered_button("Angle Right", ["d"], () =>
+        {if (this.horizontal_angle < 90) this.horizontal_angle += 1}, undefined, undefined, undefined, horizontal_angle_controls);
+
+        // Control vertical angle of the kick (only range 0 - 90)
+        const vertical_angle_controls = this.control_panel.appendChild(document.createElement("span"));
+        vertical_angle_controls.style.margin = "30px";
+        this.key_triggered_button("Angle Down", ["s"], () =>
+        {if (this.vertical_angle > 0) this.vertical_angle -= 1}, undefined, undefined, undefined, vertical_angle_controls);
+        this.live_string(box => {
+            box.textContent = "Vertical Angle: " + this.vertical_angle
+        }, vertical_angle_controls);
+        this.key_triggered_button("Angle Up", ["w"], () =>
+        {if (this.vertical_angle < 90) this.vertical_angle += 1}, undefined, undefined, undefined, vertical_angle_controls);
+
+        // Control power of the kick (only range 1 - 100)
+        const power_controls = this.control_panel.appendChild(document.createElement("span"));
+        power_controls.style.margin = "30px";
+        this.key_triggered_button("Decrease Power", ["o"], () =>
+        {if (this.power > 1) this.power -= 1}, undefined, undefined, undefined, power_controls);
+        this.live_string(box => {
+            box.textContent = "Power: " + this.power
+        }, power_controls);
+        this.key_triggered_button("Increase Power", ["p"], () =>
+        {if (this.power < 100) this.power += 1}, undefined, undefined, undefined, power_controls);
+
+        this.key_triggered_button("Kick", ["q"], () => {this.in_flight = true;});
     }
 
     display(context, program_state) {
@@ -152,15 +187,27 @@ export class Final_proj extends Scene {
         let model_transform_football = model_transform.times(Mat4.translation(this.football_x, 1.5, this.football_z))
             .times(Mat4.scale(0.75, 1.5, 0.75));
 
-        // let y_val = -1*0.4*time*time+5*time;
-        // model_transform_football = model_transform_football.times(Mat4.translation(0, y_val, -3*time));
+        // Football has been kicked, model projectile motion
+        if (this.in_flight) {
+            if (!this.start_flight_time_set) {
+                this.start_flight_time = t;
+                this.start_flight_time_set = true;
+            }
+            let rel_t = t - this.start_flight_time;
+            let vertical_radians = this.vertical_angle * Math.PI / 180.0;
+            let horizontal_radians = this.horizontal_angle * Math.PI / 180.0;
+            model_transform_football = model_transform
+                .times(Mat4.translation(
+                    this.football_x + this.power*Math.cos(vertical_radians)*Math.sin(horizontal_radians)*rel_t,
+                    -4.8*rel_t*rel_t + this.power*Math.sin(vertical_radians)*rel_t + 1.5,
+                    this.football_z + -1*this.power*Math.cos(vertical_radians)*Math.cos(horizontal_radians)*rel_t))
+                .times(Mat4.scale(0.75, 1.5, 0.75));
+        }
+
         this.shapes.football.draw(context, program_state, model_transform_football, this.materials.football);
-        //console.log(y_val);
     }
 }
 
-// x = [-80, 0]
-// z = [10, 60]
 class Texture_Scroll_X extends Textured_Phong {
     // TODO:  Modify the shader below (right now it's just the same fragment shader as Textured_Phong) for requirement #6.
     fragment_glsl_code() {

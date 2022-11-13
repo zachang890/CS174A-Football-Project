@@ -75,6 +75,8 @@ export class Final_proj extends Scene {
         this.football_x = 0;
         this.football_z = 0;
 
+        this.level_number = 1;
+
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
     }
 
@@ -85,7 +87,7 @@ export class Final_proj extends Scene {
         this.key_triggered_button("Angle Down", ["s"], () => {});
         this.key_triggered_button("Increase Power", ["p"], () => {});
         this.key_triggered_button("Decrease Power", ["o"], () => {});
-        this.key_triggered_button("Fire", ["m"], () => {});
+        this.key_triggered_button("Kick", ["f"], () => {});
     }
 
     display(context, program_state) {
@@ -98,10 +100,13 @@ export class Final_proj extends Scene {
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, 1, 100);
 
+
+        // Initialize lights
         const light_position1 = vec4(-60, 20, -10, 1);
         const light_position2 = vec4(20, 20, -10, 1);
         program_state.lights = [new Light(light_position1, color(1, 1, 1, 1), 100000), new Light(light_position2, color(1, 1, 1, 1), 100000)];
 
+        // Initialize program basics
         let t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
         let model_transform = Mat4.identity();
 
@@ -115,7 +120,7 @@ export class Final_proj extends Scene {
             this.shapes.yard_lines.draw(context, program_state, Mat4.translation(-70, 0.01, line*10), this.materials.field_lines);
         }
 
-        // Draw Goal
+        // Draw uprights
         let model_transform_base = model_transform.times(Mat4.translation(-40.0, 1.5, -15))
             .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
             .times(Mat4.scale(0.25, 0.25, 10));

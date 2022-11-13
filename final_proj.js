@@ -6,7 +6,7 @@ const {
 
 const {Cube, Axis_Arrows, Textured_Phong} = defs
 
-export class Assignment4 extends Scene {
+export class Final_proj extends Scene {
     /**
      *  **Base_scene** is a Scene that can be added to any display canvas.
      *  Setup the shapes, materials, camera, and lighting here.
@@ -43,7 +43,6 @@ export class Assignment4 extends Scene {
             upright: new defs.Cylindrical_Tube(1000, 30, [[0,2],[0,1]]),
             football: new defs.Subdivision_Sphere(4),
         }
-        console.log(this.shapes.box_1.arrays.texture_coord)
 
 
         // TODO:  Create the materials required to texture both cubes with the correct images and settings.
@@ -72,36 +71,43 @@ export class Assignment4 extends Scene {
             }),
         }
 
+        this.level_finished = true;
+        this.football_x = 0;
+        this.football_z = 0;
+
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
     }
 
     make_control_panel() {
-        // TODO:  Implement requirement #5 using a key_triggered_button that responds to the 'c' key.
+        this.key_triggered_button("Angle Left", ["a"], () => {});
+        this.key_triggered_button("Angle Right", ["d"], () => {});
+        this.key_triggered_button("Angle Up", ["w"], () => {});
+        this.key_triggered_button("Angle Down", ["s"], () => {});
+        this.key_triggered_button("Increase Power", ["p"], () => {});
+        this.key_triggered_button("Decrease Power", ["o"], () => {});
+        this.key_triggered_button("Fire", ["m"], () => {});
     }
 
     display(context, program_state) {
         if (!context.scratchpad.controls) {
             this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             // Define the global camera and projection matrices, which are stored in program_state.
-            program_state.set_camera(Mat4.translation(40, -4, -25));
+            program_state.set_camera(Mat4.translation(40, -4, -70));
         }
 
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, 1, 100);
 
-        const light_position1 = vec4(-80, 50, -10, 1);
-        const light_position2 = vec4(20, 50, -10, 1);
+        const light_position1 = vec4(-60, 20, -10, 1);
+        const light_position2 = vec4(20, 20, -10, 1);
         program_state.lights = [new Light(light_position1, color(1, 1, 1, 1), 100000), new Light(light_position2, color(1, 1, 1, 1), 100000)];
 
         let t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
         let model_transform = Mat4.identity();
 
-        // TODO:  Draw the required boxes. Also update their stored matrices.
-        // You can remove the following line.
-        this.floor_trans = Mat4.identity()
-        //const r = Mat4.rotation( Math.PI,   0,1,0 ).t imes( this.r );
         this.shapes.grass.draw( context, program_state, Mat4.translation( 0,0,0 ).times(Mat4.rotation( Math.PI,   0,0,1)), this.materials.grass );
         this.shapes.sky.draw( context, program_state, Mat4.translation(  0,0,0 ).times(Mat4.rotation( Math.PI,   0,1,0 )), this.materials.sky );
+
         // Draw lines on the field
         this.shapes.outer_border_side.draw(context, program_state, Mat4.translation(-70, 0.01, 10), this.materials.field_lines );
         this.shapes.outer_border_side.draw(context, program_state, Mat4.translation(25, 0.01, 10), this.materials.field_lines );
@@ -109,9 +115,6 @@ export class Assignment4 extends Scene {
         for (let line = 1; line < 15; line++) {
             this.shapes.yard_lines.draw(context, program_state, Mat4.translation(-70, 0.01, line*10), this.materials.field_lines);
         }
-
-
-        //this.shapes.axis.draw(context, program_state, model_transform, this.materials.phong.override({color: hex_color("#ffff00")}));
 
         // Draw Goal
         let model_transform_base = model_transform.times(Mat4.translation(-40.0, 1.5, -15))
@@ -131,14 +134,26 @@ export class Assignment4 extends Scene {
             .times(Mat4.scale(0.25, 0.25, 10));
         this.shapes.upright.draw(context, program_state, model_transform_right, this.materials.goal);
 
-        // Initialize football
-        let model_transform_football = model_transform.times(Mat4.translation(-40, 1.5, 10))
+        let time = program_state.animation_time / 1000;
+
+        // Initialize football at random position on the field only if the level is not finished
+        if (this.level_finished) {
+            this.football_x = Math.floor(Math.random() * 81 - 80);
+            this.football_z = Math.floor(Math.random() * 51 + 10);
+            this.level_finished = false;
+        }
+        let model_transform_football = model_transform.times(Mat4.translation(this.football_x, 1.5, this.football_z))
             .times(Mat4.scale(0.75, 1.5, 0.75));
+
+        // let y_val = -1*0.4*time*time+5*time;
+        // model_transform_football = model_transform_football.times(Mat4.translation(0, y_val, -3*time));
         this.shapes.football.draw(context, program_state, model_transform_football, this.materials.football);
+        //console.log(y_val);
     }
 }
 
-
+// x = [-80, 0]
+// z = [10, 60]
 class Texture_Scroll_X extends Textured_Phong {
     // TODO:  Modify the shader below (right now it's just the same fragment shader as Textured_Phong) for requirement #6.
     fragment_glsl_code() {

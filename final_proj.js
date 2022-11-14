@@ -93,34 +93,34 @@ export class Final_proj extends Scene {
         const horizontal_angle_controls = this.control_panel.appendChild(document.createElement("span"));
         horizontal_angle_controls.style.margin = "30px";
         this.key_triggered_button("Angle Left", ["a"], () =>
-        {if (this.horizontal_angle > -90) this.horizontal_angle -= 1}, undefined, undefined, undefined, horizontal_angle_controls);
+        {if (!this.in_flight && this.horizontal_angle > -90) this.horizontal_angle -= 1}, undefined, undefined, undefined, horizontal_angle_controls);
         this.live_string(box => {
             box.textContent = "Horizontal Angle: " + this.horizontal_angle
         }, horizontal_angle_controls);
         this.key_triggered_button("Angle Right", ["d"], () =>
-        {if (this.horizontal_angle < 90) this.horizontal_angle += 1}, undefined, undefined, undefined, horizontal_angle_controls);
+        {if (!this.in_flight && this.horizontal_angle < 90) this.horizontal_angle += 1}, undefined, undefined, undefined, horizontal_angle_controls);
 
         // Control vertical angle of the kick (only range 0 - 90)
         const vertical_angle_controls = this.control_panel.appendChild(document.createElement("span"));
         vertical_angle_controls.style.margin = "30px";
         this.key_triggered_button("Angle Down", ["s"], () =>
-        {if (this.vertical_angle > 0) this.vertical_angle -= 1}, undefined, undefined, undefined, vertical_angle_controls);
+        {if (!this.in_flight && this.vertical_angle > 0) this.vertical_angle -= 1}, undefined, undefined, undefined, vertical_angle_controls);
         this.live_string(box => {
             box.textContent = "Vertical Angle: " + this.vertical_angle
         }, vertical_angle_controls);
         this.key_triggered_button("Angle Up", ["w"], () =>
-        {if (this.vertical_angle < 90) this.vertical_angle += 1}, undefined, undefined, undefined, vertical_angle_controls);
+        {if (!this.in_flight && this.vertical_angle < 90) this.vertical_angle += 1}, undefined, undefined, undefined, vertical_angle_controls);
 
         // Control power of the kick (only range 1 - 100)
         const power_controls = this.control_panel.appendChild(document.createElement("span"));
         power_controls.style.margin = "30px";
         this.key_triggered_button("Decrease Power", ["o"], () =>
-        {if (this.power > 1) this.power -= 1}, undefined, undefined, undefined, power_controls);
+        {if (!this.in_flight && this.power > 1) this.power -= 1}, undefined, undefined, undefined, power_controls);
         this.live_string(box => {
             box.textContent = "Power: " + this.power
         }, power_controls);
         this.key_triggered_button("Increase Power", ["p"], () =>
-        {if (this.power < 100) this.power += 1}, undefined, undefined, undefined, power_controls);
+        {if (!this.in_flight && this.power < 100) this.power += 1}, undefined, undefined, undefined, power_controls);
 
         this.key_triggered_button("Kick", ["q"], () => {this.in_flight = true;});
     }

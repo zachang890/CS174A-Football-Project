@@ -80,6 +80,9 @@ export class Final_proj extends Scene {
         this.in_flight = false;
         this.start_flight_time = 0;
         this.start_flight_time_set = false;
+        this.kick_completed = false; // True when goal made or if ball kicked but missed goal
+        this.goal_made = false; // True when goal made
+        this.goal_missed = false; // True when goal missed
 
         this.power = 50;
         this.horizontal_angle = 0;
@@ -123,6 +126,7 @@ export class Final_proj extends Scene {
         {if (!this.in_flight && this.power < 100) this.power += 1}, undefined, undefined, undefined, power_controls);
 
         this.key_triggered_button("Kick", ["q"], () => {this.in_flight = true;});
+        // this.key_triggered_button("KICK COMPLETED", ["t"], () => {this.kick_completed = true;});
     }
 
     display(context, program_state) {
@@ -173,19 +177,37 @@ export class Final_proj extends Scene {
             .times(Mat4.scale(0.25, 0.25, 10));
         this.shapes.upright.draw(context, program_state, model_transform_right, this.materials.goal);
 
-        // Initialize football at random position on the field only if the level is not finished
-        if (this.level_finished) {
+        // Get goal upright x,y,z coordinates
+        let upright_base_y = model_transform_base[1][3];
+        let upright_base_z = model_transform_base[2][3];
+        let upright_left_x = model_transform_left[0][3];
+        let upright_right_x = model_transform_right[0][3];
+
+        // Initialize football at random position on the field only if the level is not finished or if kick complete
+        if (this.level_finished || this.kick_completed) {
             this.football_x = Math.floor(Math.random() * 81 - 80);
             this.football_z = Math.floor(Math.random() * 51 + 10);
 
             // Position the camera right behind the football
-            program_state.set_camera(Mat4.translation(-1*this.football_x, -4, -1*this.football_z-12));
+            program_state.set_camera(Mat4.translation(-1 * this.football_x, -4, -1 * this.football_z - 12));
 
             // Mark the level as unfinished
             this.level_finished = false;
+
+            // Initialize variables
+            this.kick_completed = false;
+            this.in_flight = false;
+            this.start_flight_time_set = false;
+            this.goal_made = false;
+            this.goal_missed = false;
         }
         let model_transform_football = model_transform.times(Mat4.translation(this.football_x, 1.5, this.football_z))
             .times(Mat4.scale(0.75, 1.5, 0.75));
+
+        // Get football x,y,z coordinates
+        let football_current_x = model_transform_football[0][3];
+        let football_current_y = model_transform_football[1][3];
+        let football_current_z = model_transform_football[2][3];
 
         // Football has been kicked, model projectile motion
         if (this.in_flight) {
@@ -203,7 +225,29 @@ export class Final_proj extends Scene {
                     this.football_z + -1*this.power*Math.cos(vertical_radians)*Math.cos(horizontal_radians)*rel_t))
                 .times(Mat4.scale(0.75, 1.5, 0.75));
 
+            // Update x,y,z coordinates of football
+            football_current_x = model_transform_football[0][3];
+            football_current_y = model_transform_football[1][3];
+            football_current_z = model_transform_football[2][3];
+
+            // Check if goal made or missed
+            if (football_current_z >= (upright_base_z - 1) &&
+                football_current_z <= (upright_base_z + 1) &&
+                football_current_x >= upright_left_x &&
+                football_current_x <= upright_right_x &&
+                football_current_y >= upright_base_y) {
+                this.goal_made = true;
+            } else if (!this.goal_made && (football_current_z < upright_base_z || football_current_y <= 0 || football_current_y < upright_base_y)) {
+                this.goal_missed = true;
+            }
+
             program_state.set_camera(Mat4.inverse(model_transform_football.times(Mat4.translation(0, 0, 20)).times(Mat4.scale(4.0/3.0, 2.0/3.0, 4.0/3.0))));
+        }
+
+        // TODO: Collision Detection. After it bounces a number of times, then we set kick_completed = true.
+        // Kick complete when football_current_y is 0 (i.e. hit the ground) and goal made or missed
+        if (football_current_y <= 0 && (this.goal_made || this.goal_missed)) {
+            this.kick_completed = true;
         }
 
         this.shapes.football.draw(context, program_state, model_transform_football, this.materials.football);

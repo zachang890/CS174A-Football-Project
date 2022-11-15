@@ -258,6 +258,13 @@ export class Final_proj extends Scene {
         }
 
         this.shapes.football.draw(context, program_state, model_transform_football, this.materials.football);
+
+        // TODO: Angle of camera is not exact right now.
+        // Set camera angle based on horizontal_angle
+        if (!this.in_flight) {
+            let horizontal_radians = this.horizontal_angle * Math.PI / 180.0;
+            program_state.set_camera(Mat4.inverse(model_transform_football.times(Mat4.translation(0, 0, 20)).times(Mat4.rotation(-1*(horizontal_radians), 0, 1, 0)).times(Mat4.scale(4.0/3.0, 2.0/3.0, 4.0/3.0))));
+        }
     }
 }
 

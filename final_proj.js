@@ -128,6 +128,7 @@ export class Final_proj extends Scene {
         {if (!this.in_flight && this.power < 100) this.power += 1}, undefined, undefined, undefined, power_controls);
 
         this.key_triggered_button("Kick", ["q"], () => {this.in_flight = true;});
+        this.key_triggered_button("Reset Score", ["Control", "r"], () => {this.score = 0;});
     }
 
     display(context, program_state) {

@@ -88,6 +88,8 @@ export class Final_proj extends Scene {
         this.horizontal_angle = 0;
         this.vertical_angle = 45;
 
+        this.score = 0;
+
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
     }
 
@@ -184,6 +186,11 @@ export class Final_proj extends Scene {
 
         // Initialize football at random position on the field only if the level is not finished or if kick complete
         if (this.level_finished || this.kick_completed) {
+            // Update score
+            if (this.goal_made) {
+                this.score += 1;
+            }
+
             this.football_x = Math.floor(Math.random() * 81 - 80);
             this.football_z = Math.floor(Math.random() * 51 + 10);
 

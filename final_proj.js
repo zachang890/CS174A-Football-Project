@@ -18,12 +18,17 @@ export class Final_proj extends Scene {
         // TODO:  Create two cubes, including one with the default texture coordinates (from 0 to 1), and one with the modified
         //        texture coordinates as required for cube #2.  You can either do this by modifying the cube code or by modifying
         //        a cube instance's texture_coords after it is already created.
-        const initial_corner_point = vec3( -20,0,-25 );
-        const initial_corner_point2 = vec3( -20,0,25 );
+        const initial_corner_point = vec3( -50, 0,-45 );
+        const initial_corner_point2 = vec3( -50, 0, 45 );
+        const initial_lines_corner_point = vec3(-50, 0, -15);
         // These two callbacks will step along s and t of the first sheet:
         const row_operation = (s,p) => p ? Mat4.translation( .2,0,0 ).times(p.to4(1)).to3()
             : initial_corner_point;
         const column_operation = (t,p) =>  Mat4.translation( 0,0,.2 ).times(p.to4(1)).to3();
+
+        const lines_row_operation = (s,p) => p ? Mat4.translation( .2,0,0 ).times(p.to4(1)).to3()
+            : initial_lines_corner_point;
+        const lines_column_operation = (t,p) =>  Mat4.translation( 0,0,.2 ).times(p.to4(1)).to3();
         // These two callbacks will step along s and t of the second sheet:
         const row_operation_2    = (s,p)   => vec3(    -1,2*s-1,Math.random()/2 );
         const column_operation_2 = (t,p,s) => vec3( 2*t-1,2*s-1,Math.random()/2 );
@@ -35,11 +40,11 @@ export class Final_proj extends Scene {
             box_1: new Cube(),
             box_2: new Cube(),
             axis: new Axis_Arrows(),
-            grass : new defs.Grid_Patch( 600, 900, row_operation, column_operation ),
-            outer_border_side: new defs.Grid_Patch(15, 650, row_operation, column_operation),
-            yard_lines: new defs.Grid_Patch(485, 5, row_operation, column_operation),
+            grass : new defs.Grid_Patch( 1200, 600, row_operation, column_operation ),
+            outer_border_side: new defs.Grid_Patch(15, 550, lines_row_operation, lines_column_operation),
+            yard_lines: new defs.Grid_Patch(385, 5, lines_row_operation, lines_column_operation),
             sheet2: new defs.Grid_Patch( 10, 10, row_operation_2, column_operation_2 ),
-            sky: new defs.Grid_Patch( 600, 600, row_operation_3, column_operation_3 ),
+            sky: new defs.Grid_Patch( 600, 1200, row_operation_3, column_operation_3 ),
             upright: new defs.Cylindrical_Tube(1000, 30, [[0,2],[0,1]]),
             football: new defs.Subdivision_Sphere(4),
         }
@@ -53,7 +58,7 @@ export class Final_proj extends Scene {
                 color: hex_color("#009A17"),
             }),
             sky: new Material(new Textured_Phong(), {
-                color: hex_color("#00B5E2"),
+                color: hex_color("#00B5E2"), ambient: 0.1
             }),
             field_lines: new Material(new Textured_Phong(), {
                 color: hex_color("#FFFFFF"), ambient: 1
@@ -83,8 +88,9 @@ export class Final_proj extends Scene {
         this.kick_completed = false; // True when goal made or if ball kicked but missed goal
         this.goal_made = false; // True when goal made
         this.goal_missed = false; // True when goal missed
+        this.bounce_back = 1;
 
-        this.power = 50;
+        this.power = 5;
         this.horizontal_angle = 0;
         this.vertical_angle = 45;
 
@@ -94,16 +100,16 @@ export class Final_proj extends Scene {
     }
 
     make_control_panel() {
-        // Control horizontal angle of the kick (only range -90 to 90)
+        // Control horizontal angle of the kick (only range -45 to 45)
         const horizontal_angle_controls = this.control_panel.appendChild(document.createElement("span"));
         horizontal_angle_controls.style.margin = "30px";
         this.key_triggered_button("Angle Left", ["a"], () =>
-        {if (!this.in_flight && this.horizontal_angle > -90) this.horizontal_angle -= 1}, undefined, undefined, undefined, horizontal_angle_controls);
+        {if (!this.in_flight && this.horizontal_angle > -45) this.horizontal_angle -= 1}, undefined, undefined, undefined, horizontal_angle_controls);
         this.live_string(box => {
             box.textContent = "Horizontal Angle: " + this.horizontal_angle
         }, horizontal_angle_controls);
         this.key_triggered_button("Angle Right", ["d"], () =>
-        {if (!this.in_flight && this.horizontal_angle < 90) this.horizontal_angle += 1}, undefined, undefined, undefined, horizontal_angle_controls);
+        {if (!this.in_flight && this.horizontal_angle < 45) this.horizontal_angle += 1}, undefined, undefined, undefined, horizontal_angle_controls);
 
         // Control vertical angle of the kick (only range 0 - 90)
         const vertical_angle_controls = this.control_panel.appendChild(document.createElement("span"));
@@ -116,7 +122,7 @@ export class Final_proj extends Scene {
         this.key_triggered_button("Angle Up", ["w"], () =>
         {if (!this.in_flight && this.vertical_angle < 90) this.vertical_angle += 1}, undefined, undefined, undefined, vertical_angle_controls);
 
-        // Control power of the kick (only range 1 - 100)
+        // Control power of the kick (only range 1 - 10)
         const power_controls = this.control_panel.appendChild(document.createElement("span"));
         power_controls.style.margin = "30px";
         this.key_triggered_button("Decrease Power", ["o"], () =>
@@ -125,7 +131,7 @@ export class Final_proj extends Scene {
             box.textContent = "Power: " + this.power
         }, power_controls);
         this.key_triggered_button("Increase Power", ["p"], () =>
-        {if (!this.in_flight && this.power < 100) this.power += 1}, undefined, undefined, undefined, power_controls);
+        {if (!this.in_flight && this.power < 10) this.power += 1}, undefined, undefined, undefined, power_controls);
 
         this.key_triggered_button("Kick", ["q"], () => {this.in_flight = true;});
         this.key_triggered_button("Reset Score", ["Control", "r"], () => {this.score = 0;});
@@ -143,8 +149,8 @@ export class Final_proj extends Scene {
 
 
         // Initialize lights
-        const light_position1 = vec4(-60, 20, -10, 1);
-        const light_position2 = vec4(20, 20, -10, 1);
+        const light_position1 = vec4(-105, 20, -10, 1);
+        const light_position2 = vec4(-20, 20, -10, 1);
         program_state.lights = [new Light(light_position1, color(1, 1, 1, 1), 100000), new Light(light_position2, color(1, 1, 1, 1), 100000)];
 
         // Initialize program basics
@@ -154,27 +160,27 @@ export class Final_proj extends Scene {
         // Draw the environment
         this.shapes.grass.draw( context, program_state, Mat4.translation( 0,0,0 ).times(Mat4.rotation( Math.PI,   0,0,1)), this.materials.grass );
         this.shapes.sky.draw( context, program_state, Mat4.translation(  0,0,0 ).times(Mat4.rotation( Math.PI,   0,1,0 )), this.materials.sky );
-        this.shapes.outer_border_side.draw(context, program_state, Mat4.translation(-70, 0.01, 10), this.materials.field_lines );
-        this.shapes.outer_border_side.draw(context, program_state, Mat4.translation(25, 0.01, 10), this.materials.field_lines );
+        this.shapes.outer_border_side.draw(context, program_state, Mat4.translation(-60, 0.01, 10), this.materials.field_lines );
+        this.shapes.outer_border_side.draw(context, program_state, Mat4.translation(15, 0.01, 10), this.materials.field_lines );
 
         for (let line = 1; line < 15; line++) {
-            this.shapes.yard_lines.draw(context, program_state, Mat4.translation(-70, 0.01, line*10), this.materials.field_lines);
+            this.shapes.yard_lines.draw(context, program_state, Mat4.translation(-60, 0.01, line*10), this.materials.field_lines);
         }
 
         // Draw uprights
-        let model_transform_base = model_transform.times(Mat4.translation(-40.0, 1.5, -15))
+        let model_transform_base = model_transform.times(Mat4.translation(-72.5, 1.5, -10))
             .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
             .times(Mat4.scale(0.25, 0.25, 10));
         this.shapes.upright.draw(context, program_state, model_transform_base, this.materials.goal);
-        let model_transform_horizontal= model_transform.times(Mat4.translation(-40.0, 6.5, -15))
+        let model_transform_horizontal= model_transform.times(Mat4.translation(-72.5, 6.5, -10))
             .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
             .times(Mat4.scale(0.25, 0.25, -15));
         this.shapes.upright.draw(context, program_state, model_transform_horizontal, this.materials.goal);
-        let model_transform_left = model_transform.times(Mat4.translation(-47.5, 11.25, -15))
+        let model_transform_left = model_transform.times(Mat4.translation(-80.0, 11.25, -10))
             .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
             .times(Mat4.scale(0.25, 0.25, 10));
         this.shapes.upright.draw(context, program_state, model_transform_left, this.materials.goal);
-        let model_transform_right = model_transform.times(Mat4.translation(-32.5, 11.25, -15))
+        let model_transform_right = model_transform.times(Mat4.translation(-65.0, 11.25, -10))
             .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
             .times(Mat4.scale(0.25, 0.25, 10));
         this.shapes.upright.draw(context, program_state, model_transform_right, this.materials.goal);
@@ -192,8 +198,10 @@ export class Final_proj extends Scene {
                 this.score += 1;
             }
 
-            this.football_x = Math.floor(Math.random() * 81 - 80);
-            this.football_z = Math.floor(Math.random() * 51 + 10);
+            // this.football_x = Math.floor(Math.random() * 81 - 80);
+            // this.football_z = Math.floor(Math.random() * 51 + 10);
+            this.football_x = -Math.floor(Math.random() * 40 + 60);
+            this.football_z = Math.floor(Math.random() * 15 + 20);
 
             // Position the camera right behind the football
             program_state.set_camera(Mat4.translation(-1 * this.football_x, -4, -1 * this.football_z - 12));
@@ -227,16 +235,16 @@ export class Final_proj extends Scene {
             let horizontal_radians = this.horizontal_angle * Math.PI / 180.0;
             model_transform_football = model_transform
                 .times(Mat4.translation(
-                    this.football_x + this.power*Math.cos(vertical_radians)*Math.sin(horizontal_radians)*rel_t,
-                    -9*rel_t*rel_t + this.power*Math.sin(vertical_radians)*rel_t + 1.5,
-                    this.football_z + -1*this.power*Math.cos(vertical_radians)*Math.cos(horizontal_radians)*rel_t))
+                    this.football_x + this.power*this.power*Math.cos(vertical_radians)*Math.sin(horizontal_radians)*rel_t,
+                    -9*rel_t*rel_t + this.power*this.power*Math.sin(vertical_radians)*rel_t + 1.5,
+                    this.football_z + -1*this.power*this.power*Math.cos(vertical_radians)*Math.cos(horizontal_radians)*rel_t))
+                .times(Mat4.rotation(t*20, 1, 0, 0))
                 .times(Mat4.scale(0.75, 1.5, 0.75));
 
             // Update x,y,z coordinates of football
             football_current_x = model_transform_football[0][3];
             football_current_y = model_transform_football[1][3];
             football_current_z = model_transform_football[2][3];
-
             // Check if goal made or missed
             if (football_current_z >= (upright_base_z - 1) &&
                 football_current_z <= (upright_base_z + 1) &&
@@ -248,7 +256,7 @@ export class Final_proj extends Scene {
                 this.goal_missed = true;
             }
 
-            program_state.set_camera(Mat4.inverse(model_transform_football.times(Mat4.translation(0, 0, 20)).times(Mat4.scale(4.0/3.0, 2.0/3.0, 4.0/3.0))));
+            //program_state.set_camera(Mat4.inverse(model_transform_football.times(Mat4.translation(0, 0, 20)).times(Mat4.scale(4.0/3.0, 2.0/3.0, 4.0/3.0))));
         }
 
         // TODO: Collision Detection. After it bounces a number of times, then we set kick_completed = true.
@@ -263,7 +271,11 @@ export class Final_proj extends Scene {
         // Set camera angle based on horizontal_angle
         if (!this.in_flight) {
             let horizontal_radians = this.horizontal_angle * Math.PI / 180.0;
-            program_state.set_camera(Mat4.inverse(model_transform_football.times(Mat4.translation(0, 0, 20)).times(Mat4.rotation(-1*(horizontal_radians), 0, 1, 0)).times(Mat4.scale(4.0/3.0, 2.0/3.0, 4.0/3.0))));
+            let vertical_radians = (this.vertical_angle - 35) * Math.PI / 180.0;
+
+            // UNCOMMENT THE BELOW LINE
+
+            program_state.set_camera(Mat4.inverse(model_transform_football.times(Mat4.translation(0, 0, 20)).times(Mat4.rotation(0.25*vertical_radians, 1, 0, 0)).times(Mat4.rotation(-0.70*(horizontal_radians), 0, 1, 0)).times(Mat4.scale(4.0/3.0, 2.0/3.0, 4.0/3.0))));
         }
     }
 }

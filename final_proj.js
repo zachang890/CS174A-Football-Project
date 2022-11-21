@@ -96,8 +96,16 @@ export class Final_proj extends Scene {
 
         this.score = 0;
 
+        this.reset_angle_power = () => {
+            this.power = 5;
+            this.horizontal_angle = 0;
+            this.vertical_angle = 45;
+        }
+
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
     }
+
+
 
     make_control_panel() {
         // Control horizontal angle of the kick (only range -45 to 45)
@@ -263,6 +271,7 @@ export class Final_proj extends Scene {
         // Kick complete when football_current_y is 0 (i.e. hit the ground) and goal made or missed
         if (football_current_y <= 0 && (this.goal_made || this.goal_missed)) {
             this.kick_completed = true;
+            this.reset_angle_power();
         }
 
         this.shapes.football.draw(context, program_state, model_transform_football, this.materials.football);

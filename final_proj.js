@@ -155,7 +155,6 @@ export class Final_proj extends Scene {
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, 1, 100);
 
-
         // Initialize lights
         const light_position1 = vec4(-105, 20, -10, 1);
         const light_position2 = vec4(-20, 20, -10, 1);
@@ -168,6 +167,9 @@ export class Final_proj extends Scene {
         // Draw the environment
         this.shapes.grass.draw( context, program_state, Mat4.translation( 0,0,0 ).times(Mat4.rotation( Math.PI,   0,0,1)), this.materials.grass );
         this.shapes.sky.draw( context, program_state, Mat4.translation(  0,0,0 ).times(Mat4.rotation( Math.PI,   0,1,0 )), this.materials.sky );
+        this.shapes.sky.draw( context, program_state, Mat4.translation(-60, 0, 0).times(Mat4.rotation(Math.PI/2, 0, 1, 0)), this.materials.sky );
+        this.shapes.sky.draw( context, program_state, Mat4.translation(-170, 0, 0).times(Mat4.rotation(Math.PI/2, 0, 1, 0)), this.materials.sky );
+
         this.shapes.outer_border_side.draw(context, program_state, Mat4.translation(-60, 0.01, 10), this.materials.field_lines );
         this.shapes.outer_border_side.draw(context, program_state, Mat4.translation(15, 0.01, 10), this.materials.field_lines );
 
@@ -226,6 +228,7 @@ export class Final_proj extends Scene {
         }
         let model_transform_football = model_transform.times(Mat4.translation(this.football_x, 1.5, this.football_z))
             .times(Mat4.scale(0.75, 1.5, 0.75));
+        let model_transform_football_camera = model_transform_football;
 
         // Get football x,y,z coordinates
         let football_current_x = model_transform_football[0][3];
@@ -245,7 +248,12 @@ export class Final_proj extends Scene {
                 .times(Mat4.translation(
                     this.football_x + this.power*this.power*Math.cos(vertical_radians)*Math.sin(horizontal_radians)*rel_t,
                     -9*rel_t*rel_t + this.power*this.power*Math.sin(vertical_radians)*rel_t + 1.5,
-                    this.football_z + -1*this.power*this.power*Math.cos(vertical_radians)*Math.cos(horizontal_radians)*rel_t))
+                    this.football_z + -1*this.power*this.power*Math.cos(vertical_radians)*Math.cos(horizontal_radians)*rel_t));
+
+            model_transform_football_camera = model_transform_football
+                .times(Mat4.scale(0.75, 1.5, 0.75));
+
+            model_transform_football = model_transform_football
                 .times(Mat4.rotation(t*20, 1, 0, 0))
                 .times(Mat4.scale(0.75, 1.5, 0.75));
 
@@ -264,8 +272,9 @@ export class Final_proj extends Scene {
                 this.goal_missed = true;
             }
 
-            //program_state.set_camera(Mat4.inverse(model_transform_football.times(Mat4.translation(0, 0, 20)).times(Mat4.scale(4.0/3.0, 2.0/3.0, 4.0/3.0))));
+            program_state.set_camera(Mat4.inverse(model_transform_football_camera.times(Mat4.translation(0, 0, 20)).times(Mat4.scale(4.0/3.0, 2.0/3.0, 4.0/3.0))));
         }
+
 
         // TODO: Collision Detection. After it bounces a number of times, then we set kick_completed = true.
         // Kick complete when football_current_y is 0 (i.e. hit the ground) and goal made or missed

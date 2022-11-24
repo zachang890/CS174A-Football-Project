@@ -1,10 +1,11 @@
 import {defs, tiny} from './examples/common.js';
+import {Text_Line} from "./examples/text-demo.js";
 
 const {
     Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene, Texture,
 } = tiny;
 
-const {Cube, Axis_Arrows, Textured_Phong} = defs
+const {Cube, Axis_Arrows, Basic_Shader} = defs
 
 export class Final_proj extends Scene {
     /**
@@ -47,6 +48,8 @@ export class Final_proj extends Scene {
             sky: new defs.Grid_Patch( 600, 1200, row_operation_3, column_operation_3 ),
             upright: new defs.Cylindrical_Tube(1000, 30, [[0,2],[0,1]]),
             football: new defs.Subdivision_Sphere(4),
+            scoreboard: new Cube(),
+            score_text: new Text_Line(35)
         }
 
 
@@ -54,26 +57,29 @@ export class Final_proj extends Scene {
         //        Make each Material from the correct shader.  Phong_Shader will work initially, but when
         //        you get to requirements 6 and 7 you will need different ones.
         this.materials = {
-            grass: new Material(new Textured_Phong(), {
+            grass: new Material(new defs.Phong_Shader(), {
                 color: hex_color("#009A17"),
             }),
-            sky: new Material(new Textured_Phong(), {
+            sky: new Material(new defs.Phong_Shader(), {
                 color: hex_color("#00B5E2"), ambient: 0.1
             }),
-            field_lines: new Material(new Textured_Phong(), {
+            field_lines: new Material(new defs.Phong_Shader(), {
                 color: hex_color("#FFFFFF"), ambient: 1
             }),
-            texture: new Material(new Textured_Phong(), {
-                color: hex_color("#ffffff"),
-                ambient: 0.5, diffusivity: 0.1, specularity: 0.1,
-                texture: new Texture("assets/stars.png")
-            }),
-            goal: new Material(new Textured_Phong(), {
+            goal: new Material(new defs.Phong_Shader, {
                 color: hex_color("#ffff00")
             }),
-            football: new Material(new Textured_Phong(), {
+            football: new Material(new defs.Phong_Shader(), {
                 color: hex_color("#6B3E2E")
             }),
+            scoreboard: new Material(new defs.Phong_Shader(),{
+                color: color(.5, .5, .5, 1), ambient: 0,
+                diffusivity: .3, specularity: .5, smoothness: 10
+            }),
+            score_text: new Material(new defs.Textured_Phong(1), {
+                ambient: 1, diffusivity: 0, specularity: 0,
+                texture: new Texture("assets/text.png")
+            })
         }
 
         this.level_finished = true;
@@ -176,6 +182,27 @@ export class Final_proj extends Scene {
         for (let line = 1; line < 15; line++) {
             this.shapes.yard_lines.draw(context, program_state, Mat4.translation(-60, 0.01, line*10), this.materials.field_lines);
         }
+
+        // Draw scoreboard
+        let scoreboard_transform_base = Mat4.translation(-100, 10, -10).times(Mat4.rotation(Math.PI/4, 0, 1, 0)).times(Mat4.scale(10,6,1))
+        this.shapes.scoreboard.draw(context, program_state, scoreboard_transform_base, this.materials.scoreboard)
+        let strings = ["", "", "", "", "\n\n\n  HOME   AWAY \n\n\n\n" + `   ${this.score < 10 ? 0 : Math.floor(this.score/10)}${this.score%10}     00   `
+            + "\n\n\n\n\n\n\n\n\n\n\n\n\n\n  DOWN   QTR  \n\n\n\n    4     1  ", "", ]
+        for (let i = 0; i < 3; i++)
+            for (let j = 0; j < 2; j++) {             // Find the matrix for a basis located along one of the cube's sides:
+                let cube_side = Mat4.rotation(i == 0 ? Math.PI / 2 : 0, 1, 0, 0)
+                    .times(Mat4.rotation(Math.PI * j - (i == 1 ? Math.PI / 2 : 0), 0, 1, 0))
+                    .times(Mat4.translation(-.9, .9, 1.01));
+
+                const multi_line_string = strings[2 * i + j].split('\n');
+                // Draw a Text_String for every line in our string, up to 30 lines:
+                for (let line of multi_line_string.slice(0, 30)) {             // Assign the string to Text_String, and then draw it.
+                    this.shapes.score_text.set_string(line, context.context);
+                    this.shapes.score_text.draw(context, program_state, scoreboard_transform_base.times(cube_side)
+                        .times(Mat4.scale(.09, .09, .09)), this.materials.score_text);
+                    cube_side.post_multiply(Mat4.translation(0, -.06, 0));
+                }
+            }
 
         // Draw uprights
         let model_transform_base = model_transform.times(Mat4.translation(-72.5, 1.5, -10))
@@ -297,44 +324,3 @@ export class Final_proj extends Scene {
         }
     }
 }
-
-class Texture_Scroll_X extends Textured_Phong {
-    // TODO:  Modify the shader below (right now it's just the same fragment shader as Textured_Phong) for requirement #6.
-    fragment_glsl_code() {
-        return this.shared_glsl_code() + `
-            varying vec2 f_tex_coord;
-            uniform sampler2D texture;
-            uniform float animation_time;
-            
-            void main(){
-                // Sample the texture image in the correct place:
-                vec4 tex_color = texture2D( texture, f_tex_coord);
-                if( tex_color.w < .01 ) discard;
-                                                                         // Compute an initial (ambient) color:
-                gl_FragColor = vec4( ( tex_color.xyz + shape_color.xyz ) * ambient, shape_color.w * tex_color.w ); 
-                                                                         // Compute the final color with contributions from lights:
-                gl_FragColor.xyz += phong_model_lights( normalize( N ), vertex_worldspace );
-        } `;
-    }
-}
-
-
-class Texture_Rotate extends Textured_Phong {
-    // TODO:  Modify the shader below (right now it's just the same fragment shader as Textured_Phong) for requirement #7.
-    fragment_glsl_code() {
-        return this.shared_glsl_code() + `
-            varying vec2 f_tex_coord;
-            uniform sampler2D texture;
-            uniform float animation_time;
-            void main(){
-                // Sample the texture image in the correct place:
-                vec4 tex_color = texture2D( texture, f_tex_coord );
-                if( tex_color.w < .01 ) discard;
-                                                                         // Compute an initial (ambient) color:
-                gl_FragColor = vec4( ( tex_color.xyz + shape_color.xyz ) * ambient, shape_color.w * tex_color.w ); 
-                                                                         // Compute the final color with contributions from lights:
-                gl_FragColor.xyz += phong_model_lights( normalize( N ), vertex_worldspace );
-        } `;
-    }
-}
-

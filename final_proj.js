@@ -162,9 +162,14 @@ export class Final_proj extends Scene {
             Math.PI / 4, context.width / context.height, 1, 100);
 
         // Initialize lights
-        const light_position1 = vec4(-105, 20, -10, 1);
+        // const light_position1 = vec4(-105, 20, -10, 1);
         const light_position2 = vec4(-20, 20, -10, 1);
-        program_state.lights = [new Light(light_position1, color(1, 1, 1, 1), 100000), new Light(light_position2, color(1, 1, 1, 1), 100000)];
+        const light_position3 = vec4(-200,0,-5,1);
+        program_state.lights = [
+            // new Light(light_position1, color(1, 1, 1, 1), 100000),
+            new Light(light_position2, color(1, 1, 1, 1), 100000),
+            new Light(light_position3, color(1, 1, 1, 1), 100000)
+        ];
 
         // Initialize program basics
         let t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;

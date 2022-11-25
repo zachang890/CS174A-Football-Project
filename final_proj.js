@@ -108,6 +108,8 @@ export class Final_proj extends Scene {
             this.vertical_angle = 45;
         }
 
+        this.bounce = 1;
+        this.xz_start_flight_time = 0.0;
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
     }
 
@@ -247,7 +249,6 @@ export class Final_proj extends Scene {
 
             // Position the camera right behind the football
             program_state.set_camera(Mat4.translation(-1 * this.football_x, -4, -1 * this.football_z - 12));
-
             // Mark the level as unfinished
             this.level_finished = false;
 
@@ -257,6 +258,7 @@ export class Final_proj extends Scene {
             this.start_flight_time_set = false;
             this.goal_made = false;
             this.goal_missed = false;
+            this.bounce = 1;
         }
         let model_transform_football = model_transform.times(Mat4.translation(this.football_x, 1.5, this.football_z))
             .times(Mat4.scale(0.75, 1.5, 0.75));
@@ -272,15 +274,30 @@ export class Final_proj extends Scene {
             if (!this.start_flight_time_set) {
                 this.start_flight_time = t;
                 this.start_flight_time_set = true;
+                this.xz_start_flight_time = t;
             }
-            let rel_t = t - this.start_flight_time;
             let vertical_radians = this.vertical_angle * Math.PI / 180.0;
             let horizontal_radians = this.horizontal_angle * Math.PI / 180.0;
+
+            let rel_t = t - this.start_flight_time;
+            let y_pos = -9*rel_t*rel_t + this.power*this.power/this.bounce*Math.sin(vertical_radians)*rel_t + 1.5;
+            if (y_pos < 1.0) {
+                this.start_flight_time = t;
+                this.bounce += 1;
+            }
+
+            if (this.bounce > 3) {
+                this.kick_completed = true;
+                this.reset_angle_power();
+            }
+
+            let xz_time = t - this.xz_start_flight_time;
+
             model_transform_football = model_transform
                 .times(Mat4.translation(
-                    this.football_x + this.power*this.power*Math.cos(vertical_radians)*Math.sin(horizontal_radians)*rel_t,
-                    -9*rel_t*rel_t + this.power*this.power*Math.sin(vertical_radians)*rel_t + 1.5,
-                    this.football_z + -1*this.power*this.power*Math.cos(vertical_radians)*Math.cos(horizontal_radians)*rel_t));
+                    this.football_x + this.power*this.power*Math.cos(vertical_radians)*Math.sin(horizontal_radians)*xz_time,
+                    y_pos,
+                    this.football_z + -1*this.power*this.power*Math.cos(vertical_radians)*Math.cos(horizontal_radians)*xz_time));
 
             model_transform_football_camera = model_transform_football
                 .times(Mat4.scale(0.75, 1.5, 0.75));

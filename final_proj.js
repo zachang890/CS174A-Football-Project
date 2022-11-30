@@ -286,18 +286,20 @@ export class Final_proj extends Scene {
                 this.bounce += 1;
             }
 
-            if (this.bounce > 3) {
+            let xz_time = t - this.xz_start_flight_time;
+
+            let z_pos = this.football_z + -1*this.power*this.power*Math.cos(vertical_radians)*Math.cos(horizontal_radians)*xz_time;
+
+            if (this.bounce > 3 || z_pos < -45) {
                 this.kick_completed = true;
                 this.reset_angle_power();
             }
-
-            let xz_time = t - this.xz_start_flight_time;
 
             model_transform_football = model_transform
                 .times(Mat4.translation(
                     this.football_x + this.power*this.power*Math.cos(vertical_radians)*Math.sin(horizontal_radians)*xz_time,
                     y_pos,
-                    this.football_z + -1*this.power*this.power*Math.cos(vertical_radians)*Math.cos(horizontal_radians)*xz_time));
+                    z_pos));
 
             model_transform_football_camera = model_transform_football
                 .times(Mat4.scale(0.75, 1.5, 0.75));
@@ -324,8 +326,6 @@ export class Final_proj extends Scene {
             program_state.set_camera(Mat4.inverse(model_transform_football_camera.times(Mat4.translation(0, 0, 20)).times(Mat4.scale(4.0/3.0, 2.0/3.0, 4.0/3.0))));
         }
 
-
-        // TODO: Collision Detection. After it bounces a number of times, then we set kick_completed = true.
         // Kick complete when football_current_y is 0 (i.e. hit the ground) and goal made or missed
         if (football_current_y <= 0 && (this.goal_made || this.goal_missed)) {
             this.kick_completed = true;

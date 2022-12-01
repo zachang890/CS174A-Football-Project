@@ -101,6 +101,7 @@ export class Final_proj extends Scene {
         this.vertical_angle = 45;
 
         this.score = 0;
+        this.opp_score = -1;
 
         this.reset_angle_power = () => {
             this.power = 5;
@@ -150,7 +151,7 @@ export class Final_proj extends Scene {
         {if (!this.in_flight && this.power < 10) this.power += 1}, undefined, undefined, undefined, power_controls);
 
         this.key_triggered_button("Kick", ["q"], () => {this.in_flight = true;});
-        this.key_triggered_button("Reset Score", ["Control", "r"], () => {this.score = 0;});
+        this.key_triggered_button("Reset Score", ["Control", "r"], () => {this.score = 0; this.opp_score = 0;});
     }
 
     display(context, program_state) {
@@ -193,7 +194,7 @@ export class Final_proj extends Scene {
         // Draw scoreboard
         let scoreboard_transform_base = Mat4.translation(-100, 10, -10).times(Mat4.rotation(Math.PI/4, 0, 1, 0)).times(Mat4.scale(10,6,1))
         this.shapes.scoreboard.draw(context, program_state, scoreboard_transform_base, this.materials.scoreboard)
-        let strings = ["", "", "", "", "\n\n\n  HOME   AWAY \n\n\n\n" + `   ${this.score < 10 ? 0 : Math.floor(this.score/10)}${this.score%10}     00   `
+        let strings = ["", "", "", "", "\n\n\n  HOME   AWAY \n\n\n\n" + `   ${this.score < 10 ? 0 : Math.floor(this.score/10)}${this.score%10}     ${this.opp_score < 10 ? 0 : Math.floor(this.opp_score/10)}${this.opp_score%10}   `
             + "\n\n\n\n\n\n\n\n\n\n\n\n\n\n  DOWN   QTR  \n\n\n\n    4     1  ", "", ]
         for (let i = 0; i < 3; i++)
             for (let j = 0; j < 2; j++) {             // Find the matrix for a basis located along one of the cube's sides:
@@ -240,6 +241,9 @@ export class Final_proj extends Scene {
             // Update score
             if (this.goal_made) {
                 this.score += 1;
+            }
+            else {
+                this.opp_score += 1;
             }
 
             // this.football_x = Math.floor(Math.random() * 81 - 80);

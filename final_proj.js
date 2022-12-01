@@ -321,7 +321,7 @@ export class Final_proj extends Scene {
                 football_current_z <= (upright_base_z + 1) &&
                 football_current_x >= upright_left_x &&
                 football_current_x <= upright_right_x &&
-                football_current_y >= upright_base_y) {
+                football_current_y >= 6.5) {
                 this.goal_made = true;
             } else if (!this.goal_made && (football_current_z < upright_base_z || football_current_y <= 0 || football_current_y < upright_base_y)) {
                 this.goal_missed = true;
